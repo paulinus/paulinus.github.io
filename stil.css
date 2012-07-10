@@ -2,6 +2,9 @@
 body
 {
 	font-family: fixedsys,monospace;
+        max-width: 640px;
+        text-align: justify;
+        margin: 0px auto;
 }
 
 em
