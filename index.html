@@ -1,23 +1,23 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+---
+layout: base
+title: Pau Gargallo i Piracés
+---
 
 
-<html>
-  <head>
-    <title>Pau Gargallo i Piracés</title>
-    <link href="stil.css" type="text/css" rel="stylesheet" />
-  </head>
-  <body>
-    <h1>Pau Gargallo i Piracés</h1>
-    <p>
-    Hi! I'm a computer vision <strike>researcher</strike> hobbyist.  I work at <a href="http://clacktion.com/">Clacktion</a>, where I'm doing a professional travel.  Before, I was working at <a href="http://barcelonamedia.org">Barcelona Media</a>, where I did <a href="http://www.youtube.com/watch?v=UePrOp2s31c">3D reconstruction stuff</a>.  Before, I did a <a href ="publications.html">PhD</a> in computer vision under the supervision of <a href="http://perception.inrialpes.fr/~Sturm/">Peter Sturm</a> at the <a href="http://www.inria.fr/centre/grenoble">INRIA Rhône-Alpes</a>.
-    </p>
-    <p>
-    pau.gargallo@gmail.com<br />
-    +34661061551<br />
-    <a href="https://github.com/paulinus">github</a><br />
-    <a href="https://twitter.com/paugargallo">twitter</a><br />
-    <a href="publications.html">publications</a>
-    </p>
-  </body>
-</html>
+<h1>Pau Gargallo i Piracés</h1>
+<p>
+Hi! I'm a computer vision <strike>researcher</strike> hobbyist.  I work at <a href="http://clacktion.com/">Clacktion</a>, where I'm doing a professional travel.  Before, I was working at <a href="http://barcelonamedia.org">Barcelona Media</a>, where I did <a href="http://www.youtube.com/watch?v=UePrOp2s31c">3D reconstruction stuff</a>.  Before, I did a <a href ="publications.html">PhD</a> in computer vision under the supervision of <a href="http://perception.inrialpes.fr/~Sturm/">Peter Sturm</a> at the <a href="http://www.inria.fr/centre/grenoble">INRIA Rhône-Alpes</a>.
+</p>
+<p>
+pau.gargallo@gmail.com<br />
++34661061551<br />
+<a href="https://github.com/paulinus">github</a><br />
+<a href="https://twitter.com/paugargallo">twitter</a><br />
+<a href="publications.html">publications</a>
+</p>
+
+<br />
+<h2>fun fun fun</h2>
+{% for post in site.posts %}
+<li><span>{{ post.date | date_to_string }}</span> &raquo; <a href="{{ post.url }}">{{ post.title }}</a></li>
+{% endfor %}

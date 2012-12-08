@@ -4,74 +4,38 @@ title: Fire
 ---
 
 
-<canvas id="myCanvas" width="320" height="200">
-This should be a colorful canvas :-(
-</canvas>
+<p>Looking at the benchmarks on the <a href="http://julialang.org/">web of the Julia programming language</a>, I was surprised to see the speed at which JavaScript runs on <a href="http://code.google.com/p/v8/">V8</a>.  I decided I wanted to play with it.</p>
 
-<script type="text/javascript">
-var c = document.getElementById("myCanvas");
-var ctx = c.getContext("2d");
-var id = ctx.getImageData(0, 0, c.width, c.height);
-var w = id.width;
-var h = id.height;
+<p>I took an old code of mine from the demoscene era.  At that time (1997), the way to be fast enough was to code in assembly.  I translated the code to JavaScript to see how fast it run on the browser.  This is the result:</p>
 
-// Build palette.
-var palette = Array();
-for (var i = 0; i < 256; ++i) {
-  palette[4 * i + 0] = (4 * i) % 256;
-  palette[4 * i + 1] = (2 * i) % 256;
-  palette[4 * i + 2] = (1 * i) % 256;
-  palette[4 * i + 3] = 255;
-}
+<div align="center">
+  <canvas id="myCanvas" width="320" height="200">
+    This should be a colorful canvas :-(<br />
+    Either your browser or my web suck.
+  </canvas>
+</div>
 
-// Init image.
-var f = Array();
-f.length = w * h;
-for (var i = 0; i < f.length; ++i) {
-  f[i] = Math.random() * 255;
-}
 
-function draw() {
-  var bottom = 3;
+<p>The conclusion is clear, you can do now in JavaScript what was only possible in assembly in 1997.  I wander what would be possible today if someone was coding in assembly ;-)</p>
 
-  // Draw random values at the bottom.
-  for (var p = w * (h - bottom); p < w * h; ++p) {
-    f[p] = (f[p] + 15 * Math.random()) % 256;
-  }
+<p>For the curious, below are the two codes.</p>
 
-  // Shift pixels by combining lower rows.
-  for (var p = 0; p < w * (h - bottom); ++p) {
-    f[p] = (f[p+w] + 2 * f[p+2*w-1] + 2 * f[p+2*w] + 2 * f[p+2*w+1]) * 36 / 256;
-  }
 
-  // Render with palette.
-  for (var p = 0; p < w * h; ++p) {
-    for (var c = 0; c < 4; ++c) {
-      id.data[4 * p + c] = palette[4 * Math.floor(f[p]) + c];
-    }
-  }
+<h2>1997 - Assembly</h2>
 
-  ctx.putImageData(id, 0, 0);
-}
-
-setInterval("draw()", 50);
-
-</script>
-
-<pre><code>
+{% highlight nasm %}
 .model tiny
 .code
 .386
                 org     100h
 
-start:   
+start:
 
 main    PROC
                 mov     ax, 13h
                 int     10h
                 
-                call    setpal                
-                
+                call    setpal
 
                 mov     ax, 0A000h
                 mov     es, ax
@@ -80,7 +44,6 @@ main    PROC
                 mov     ds, ax
                 xor     si, si
                 mov     di, si
-
 
 
 segueix:        mov     si, 320*198
@@ -135,15 +98,13 @@ res:            mov     [si], ah
 main    ENDP
 
 
-
-
 setpal  PROC
-                mov     dx,3C8h
-                xor     ax,ax
-                out     dx,al
+                mov     dx, 3C8h
+                xor     ax, ax
+                out     dx, al
                 inc     dx
 ColorLoop:      ror     al, 2
-                out     dx,al
+                out     dx, al
                 rol     al, 1
                 out     dx, al
                 rol     al, 1
@@ -153,8 +114,111 @@ ColorLoop:      ror     al, 2
                 ret
 setpal  ENDP 
 
-
                 end     start
-</code></pre>
+{% endhighlight %}
+
+
+<h2>2012 - JavaScript</h2>
+
+{% highlight js+cheetah %}
+var c = document.getElementById("myCanvas");
+var ctx = c.getContext("2d");
+var id = ctx.getImageData(0, 0, c.width, c.height);
+var w = id.width;
+var h = id.height;
+
+// Build palette.
+var palette = Array();
+for (var i = 0; i < 256; ++i) {
+  palette[4 * i + 0] = (4 * i) % 256;
+  palette[4 * i + 1] = (2 * i) % 256;
+  palette[4 * i + 2] = (1 * i) % 256;
+  palette[4 * i + 3] = 255;
+}
+
+// Init image.
+var f = Array();
+f.length = w * h;
+for (var i = 0; i < f.length; ++i) {
+  f[i] = Math.random() * 255;
+}
+
+function draw() {
+  var bottom = 3;
+
+  // Draw random values at the bottom.
+  for (var p = w * (h - bottom); p < w * h; ++p) {
+    f[p] = (f[p] + 15 * Math.random()) % 256;
+  }
+
+  // Shift pixels by combining lower rows.
+  for (var p = 0; p < w * (h - bottom); ++p) {
+    f[p] = (f[p+w] + 2 * f[p+2*w-1] + 2 * f[p+2*w] + 2 * f[p+2*w+1]) * 36 / 256;
+  }
+
+  // Render with palette.
+  for (var p = 0; p < w * h; ++p) {
+    for (var c = 0; c < 4; ++c) {
+      id.data[4 * p + c] = palette[4 * Math.floor(f[p]) + c];
+    }
+  }
+
+  ctx.putImageData(id, 0, 0);
+}
+
+setInterval("draw()", 50);
+{% endhighlight %}
+
+
+
+<script type="text/javascript">
+var c = document.getElementById("myCanvas");
+var ctx = c.getContext("2d");
+var id = ctx.getImageData(0, 0, c.width, c.height);
+var w = id.width;
+var h = id.height;
+
+// Build palette.
+var palette = Array();
+for (var i = 0; i < 256; ++i) {
+  palette[4 * i + 0] = (4 * i) % 256;
+  palette[4 * i + 1] = (2 * i) % 256;
+  palette[4 * i + 2] = (1 * i) % 256;
+  palette[4 * i + 3] = 255;
+}
+
+// Init image.
+var f = Array();
+f.length = w * h;
+for (var i = 0; i < f.length; ++i) {
+  f[i] = Math.random() * 255;
+}
+
+function draw() {
+  var bottom = 3;
+
+  // Draw random values at the bottom.
+  for (var p = w * (h - bottom); p < w * h; ++p) {
+    f[p] = (f[p] + 15 * Math.random()) % 256;
+  }
+
+  // Shift pixels by combining lower rows.
+  for (var p = 0; p < w * (h - bottom); ++p) {
+    f[p] = (f[p+w] + 2 * f[p+2*w-1] + 2 * f[p+2*w] + 2 * f[p+2*w+1]) * 36 / 256;
+  }
+
+  // Render with palette.
+  for (var p = 0; p < w * h; ++p) {
+    for (var c = 0; c < 4; ++c) {
+      id.data[4 * p + c] = palette[4 * Math.floor(f[p]) + c];
+    }
+  }
+
+  ctx.putImageData(id, 0, 0);
+}
+
+setInterval("draw()", 50);
+
+</script>
 
 
