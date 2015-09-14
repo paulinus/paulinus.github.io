@@ -1,0 +1,230 @@
+---
+layout: base
+title: How to crop a picture
+---
+
+<h1>How to crop a picture</h1>
+
+<div align='center'>
+  <h2>Original</h2>
+  <canvas id='original' width='320' height='200'>
+    This should be a colorful canvas :-(<br />
+    Either your browser or my web suck.
+  </canvas>
+  <h2>Cropped</h2>
+  <canvas id='cropped' width='320' height='200'>
+    This should be a colorful canvas :-(<br />
+    Either your browser or my web suck.
+  </canvas>
+</div>
+
+<div>
+  <h2>Formulae</h2>
+  <p>
+    The coordinates of a pixel $(u,v,1)$ in the new camera, correspond to a pixel in the orginal image given by
+    $$u' = H' K' R K^{-1} H^{-1} u$$
+  </p>
+  <p>
+    Matrix $K$ goes from camera coordinates to viewport coordinates:
+    $$K = \begin{pmatrix} 2\frac{f}{w_s} & 0 & 0 \\ 0 & 2\frac{f}{h_s} & 0 \\ 0 & 0 & 1 \end{pmatrix},$$
+    where $f$ is the focal length, and $w_s$, $h_s$ are the physical width and height of the sensor expressed in the same units as the focal length.
+  </p>
+  <p>
+    Matrix $H$ goes from viewport coordinates to pixel coordinates:
+    $$H = \begin{pmatrix} w/2 & 0 & w/2 \\ 0 & h/2 & h/2 \\ 0 & 0 & 1 \end{pmatrix},$$
+    where $w$ and $h$ are the width and height of the image in pixels.
+  </p>
+  <p>
+    The matrix $R$ is the rotation from the new camera to the original camera.  We choose $R$ such that the pixel selected by the user projects into the center of the cropped image.  That is,
+    $$u' = H' K' R \begin{pmatrix} 0 \\ 0 \\ 1 \end{pmatrix}$$
+    where $u'$ is the pixel selected by the user.  From this constraint we have that the third column of $R$ is
+    $$r_3 = (H' K')^{-1} u'$$
+    The other columns of $R$ can be computed using orthonormality constraints and requiring the X axis to stay horitzontal.  This gives,
+    $$r_1 = r_3 \times e_3$$
+    $$r_2 = r_3 \times r_1$$
+    (All equalities here are up to scale.  The columns of $R$ need to be normalized)
+  </p>
+</div>
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
+});
+</script>
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+<script type='text/javascript' src='gl-matrix.js'></script>
+<script type='text/javascript'>
+
+var original_focal_length = 18;
+var focal_length = 50;
+
+var crop_x, crop_y;
+var crop_w, crop_h;
+var original_f;
+var dragging = false;
+
+// Load original image.
+var original_canvas = document.getElementById('original');
+var original_context = original_canvas.getContext('2d');
+var original_data;
+var original_img = new Image();
+original_img.src = 'concert.jpg';
+original_img.onload = function() {
+  original_canvas.width = this.width;
+  original_canvas.height = this.height; 
+  original_context.drawImage(this, 0, 0);
+  original_data = original_context.getImageData(0, 0, original_canvas.width, original_canvas.height);
+};
+
+// Set up cropped image.
+var cropped_canvas = document.getElementById('cropped');
+var cropped_context = cropped_canvas.getContext('2d');
+var cropped_data = cropped_context.getImageData(0, 0, cropped_canvas.width, cropped_canvas.height);
+setCropWH(cropped_data.width, cropped_data.height);
+
+
+original_canvas.addEventListener('mousedown', function(event) {
+  dragging = true;
+  originalMouseMove(event);
+});
+
+original_canvas.addEventListener('mouseup', function(event) {
+  dragging = false;
+});
+
+original_canvas.addEventListener('mousemove', originalMouseMove);
+
+function originalMouseMove(event) {
+  if (dragging) {
+    setCropXY(event.offsetX, event.offsetY);
+  }
+}
+
+function setCropXY(x, y) {
+  crop_x = x;
+  crop_y = y;
+  updateCropped();
+}
+
+function setCropWH(w, h) {
+  crop_w = w;
+  crop_h = h;
+  updateCropped();
+}
+
+function updateCropped() {
+  if (!original_data) return;
+
+  cropPanZoom();
+
+  cropped_context.putImageData(cropped_data, 0, 0);
+}
+
+function createK(f, w_s, h_s) {
+  K = mat3.create();
+  K[0] = 2 * f / w_s;  K[3] = 0;            K[6] = 0;
+  K[1] = 0;            K[4] = 2 * f / h_s;  K[7] = 0;
+  K[2] = 0;            K[5] = 0;            K[8] = 1;
+  return K;
+}
+
+function createH(w, h) {
+  H = mat3.create();
+  H[0] = w / 2;  H[3] = 0;      H[6] = w / 2;
+  H[1] = 0;      H[4] = h / 2;  H[7] = h / 2;
+  H[2] = 0;      H[5] = 0;      H[8] = 1;
+  return H;
+}
+
+function mat3vec3mul(out, A, b) {
+  var x = b[0], y = b[1], z = b[2];
+
+  out[0] = A[0] * x + A[3] * y + A[6] * z;
+  out[1] = A[1] * x + A[4] * y + A[7] * z;
+  out[2] = A[2] * x + A[5] * y + A[8] * z;
+
+  return out;
+}
+
+function homography() {
+  var K = createK(focal_length, 35., 35. * crop_h / crop_w);
+  var H = createH(crop_w, crop_h);
+  var oK = createK(original_focal_length, 35, 35 * original_data.height / original_data.width);
+  var oH = createH(original_data.width, original_data.height);
+  var R = mat3.create();
+
+  var HK = mat3.create();
+  mat3.multiply(HK, H, K);
+  var HK1 = mat3.create();
+  mat3.invert(HK1, HK);
+  var oHK = mat3.create();
+  mat3.multiply(oHK, oH, oK);
+  var oHK1 = mat3.create();
+  mat3.invert(oHK1, oHK);
+
+  var u = vec3.fromValues(crop_x, crop_y, 1);
+  var r3 = vec3.create();
+  mat3vec3mul(r3, oHK1, u);
+  vec3.scale(r3, r3, 1 / vec3.length(r3));
+
+  var e = vec3.fromValues(0, -1, 0);
+  var r1 = vec3.create();
+  vec3.cross(r1, r3, e);
+  vec3.scale(r1, r1, 1 / vec3.length(r1));
+
+  var r2 = vec3.create();
+  vec3.cross(r2, r3, r1);
+  vec3.scale(r2, r2, 1 / vec3.length(r2));
+
+  var R = mat3.create();
+  R[0] = r1[0];  R[3] = r2[0];  R[6] = r3[0];
+  R[1] = r1[1];  R[4] = r2[1];  R[7] = r3[1];
+  R[2] = r1[2];  R[5] = r2[2];  R[8] = r3[2];
+
+  var res = mat3.create();
+  mat3.multiply(res, oHK, R);
+  mat3.multiply(res, res, HK1);
+  return res;
+}
+
+function cropPanZoom() {
+  var H = homography();
+
+  var ow = original_data.width;
+  var oh = original_data.height;
+  for (var y = 0; y < crop_h; y++) {
+    for (var x = 0; x < crop_w; x++) {
+      var w = H[2] * x + H[5] * y + H[8];
+      var ox = (H[0] * x + H[3] * y + H[6]) / w;
+      var oy = (H[1] * x + H[4] * y + H[7]) / w;
+      ox = Math.round(ox);
+      oy = Math.round(oy);
+      if (0 <= ox && ox < ow && 0 < oy && oy < oh) {
+        for (var c = 0; c < 4; c++) {
+          cropped_data.data[c + 4 * (x + crop_w * y)] = original_data.data[c + 4 * (ox + ow * oy)];
+        }
+      } else {
+        for (var c = 0; c < 4; c++) {
+          cropped_data.data[c + 4 * (x + crop_w * y)] = 0;
+        }
+      }
+    }    
+  }
+}
+
+function cropSimple() {
+  var ow = original_data.width;
+  for (var y = 0; y < crop_h; y++) {
+    for (var x = 0; x < crop_w; x++) {
+      var ox = x + crop_x - crop_w / 2;
+      var oy = y + crop_y - crop_h / 2;
+      for (var c = 0; c < 4; c++) {
+        cropped_data.data[c + 4 * (x + crop_w * y)] = original_data.data[c + 4 * (ox + ow * oy)];
+      }
+    }    
+  }
+}
+
+</script>
