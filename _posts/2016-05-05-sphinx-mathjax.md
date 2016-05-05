@@ -20,22 +20,23 @@ So here's how you do it.
 
 First extend the the layout template to add a custom script.  Create the file `docs/source/_templates/layout.html` with this content
 
-{% highlight js+cheetah  %}
+```javascript
 {% raw  %}
 {% extends "!layout.html" %}
 {% set script_files = script_files + ["_static/mathjax_conf.js"] %}
 {% endraw %}
-{% endhighlight %}
+```
 
 Then add the config script `docs/source/_static/mathjax_conf.js` with
 
-{% highlight js+cheetah  %}
+```javascript
+
 MathJax.Hub.Config({
    "HTML-CSS": {
         availableFonts: ["TeX"],
         scale: 90
    }
 });
-{% endhighlight %}
 
+```
 Note that the `scale: 90` was needed to make the font size match that of the `sphinx_rtd_theme`. You might need other values for other themes.
