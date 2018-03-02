@@ -1,7 +1,7 @@
 
 body
 {
-    font-family: fixedsys,monospace;
+    font-family: consolas, monospace;
     max-width: 640px;
     margin: 0px auto;
 }
