@@ -9,19 +9,19 @@ title: How to crop a picture
   <h2>Original</h2>
   <canvas id='original' width='320' height='200'>
     This should be a colorful canvas :-(<br />
-    Either your browser or my web suck.
+    Either your browser or my website sucks.
   </canvas>
   <h2>Cropped</h2>
   <canvas id='cropped' width='320' height='200'>
     This should be a colorful canvas :-(<br />
-    Either your browser or my web suck.
+    Either your browser or my website sucks.
   </canvas>
 </div>
 
 <div>
   <h2>Formulae</h2>
   <p>
-    The coordinates of a pixel $(u,v,1)$ in the new camera, correspond to a pixel in the orginal image given by
+    The coordinates of a pixel $(u,v,1)$ in the new camera, correspond to a pixel in the original image given by
     $$u' = H' K' R K^{-1} H^{-1} u$$
   </p>
   <p>
@@ -39,7 +39,7 @@ title: How to crop a picture
     $$u' = H' K' R \begin{pmatrix} 0 \\ 0 \\ 1 \end{pmatrix}$$
     where $u'$ is the pixel selected by the user.  From this constraint we have that the third column of $R$ is
     $$r_3 = (H' K')^{-1} u'$$
-    The other columns of $R$ can be computed using orthonormality constraints and requiring the X axis to stay horitzontal.  This gives,
+    The other columns of $R$ can be computed using orthonormality constraints and requiring the X axis to stay horizontal.  This gives,
     $$r_1 = r_3 \times e_3$$
     $$r_2 = r_3 \times r_1$$
     (All equalities here are up to scale.  The columns of $R$ need to be normalized)

@@ -1,10 +1,10 @@
 ---
 layout: post
-title: Latex font on Sphinx's MathJax
+title: LaTeX font on Sphinx's MathJax
 ---
 
 
-Sphinx comes with a MathJax extension.  It let's you write Latex equations that are parsed by MathJax on the browser at viewing time.  Pretty cool.
+Sphinx comes with a MathJax extension.  It lets you write LaTeX equations that are parsed by MathJax on the browser at viewing time.  Pretty cool.
 
 The extension, however, does not set any MathJax option.  That causes MathJax to use the default font which looks quite ugly.
 
@@ -18,7 +18,7 @@ Much better!
 
 So here's how you do it.
 
-First extend the the layout template to add a custom script.  Create the file `docs/source/_templates/layout.html` with this content
+First extend the layout template to add a custom script.  Create the file `docs/source/_templates/layout.html` with this content
 
 ```javascript
 {% raw  %}
